@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Login - Plataforma PCD{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-base-200 px-4 py-12">
+    <div class="card w-full max-w-md bg-base-100 shadow-2xl">
+        <div class="card-body p-8">
+
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-heart text-4xl text-primary"></i>
+                </div>
+                <h1 class="text-3xl font-bold">Bem-vindo de volta!</h1>
+                <p class="text-base-content/70 mt-2">Acesse sua conta na Plataforma PCD</p>
+            </div>
+
+            {% if form.errors %}
+                <div class="alert alert-error shadow-lg mb-6">
+                    <div>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>E-mail ou senha incorretos. Tente novamente.</span>
+                    </div>
+                </div>
+            {% endif %}
+
+            <form method="post" 
+                  hx-post="{% url 'account:login' %}" 
+                  hx-target="#login-card" 
+                  hx-swap="outerHTML"
+                  class="space-y-6">
+                {% csrf_token %}
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">E-mail</span>
+                    </label>
+                    <input type="email" 
+                           name="email" 
+                           placeholder="seu@email.com" 
+                           class="input input-bordered w-full" 
+                           required 
+                           autofocus />
+                </div>
+
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Senha</span>
+                    </label>
+                    <input type="password" 
+                           name="password" 
+                           placeholder="••••••••" 
+                           class="input input-bordered w-full" 
+                           required />
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <label class="cursor-pointer label">
+                        <input type="checkbox" name="remember" class="checkbox checkbox-primary" />
+                        <span class="label-text ml-2">Lembrar-me</span>
+                    </label>
+                    <a href="{% url 'forgot_password' %}" 
+                       class="link link-primary text-sm hover:underline">
+                        Esqueci a senha
+                    </a>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" 
+                            class="btn btn-primary w-full btn-lg"
+                            id="login-btn">
+                        <span class="loading loading-spinner hidden" id="login-loading"></span>
+                        Entrar na conta
+                    </button>
+                </div>
+            </form>
+
+            <div class="divider my-8">OU</div>
+
+            <div class="text-center">
+                <p class="text-base-content/70 mb-4">Ainda não tem conta?</p>
+                <a href="{% url 'account:register_choice' %}" 
+                   class="btn btn-outline btn-primary w-full">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Criar nova conta
+                </a>
+            </div>
+
+            <div class="text-center mt-6">
+                <a href="/" class="link link-neutral text-sm">
+                    ← Voltar para a página inicial
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.body.addEventListener('htmx:beforeRequest', function(evt) {
+    if (evt.detail.path.includes('login')) {
+        document.getElementById('login-loading').classList.remove('hidden');
+        document.getElementById('login-btn').classList.add('btn-disabled');
+    }
+});
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    document.getElementById('login-loading').classList.add('hidden');
+    document.getElementById('login-btn').classList.remove('btn-disabled');
+});
+</script>
+
+<div id="login-card"></div>
+{% endblock %}

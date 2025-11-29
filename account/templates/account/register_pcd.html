@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Cadastro PCD{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-base-200 px-4">
+    <div class="card w-full max-w-2xl bg-base-100 shadow-2xl">
+        <div class="card-body">
+            <div class="text-center mb-8">
+                <i class="fas fa-user text-6xl text-blue-600 mb-4"></i>
+                <h1 class="text-3xl font-bold">Cadastro - Pessoa com Deficiência</h1>
+            </div>
+
+            <form method="post" hx-post="" hx-target="this" hx-swap="outerHTML">
+                {% csrf_token %}
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Nome completo</span></label>
+                        {{ form.nome_completo }}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">E-mail</span></label>
+                        {{ form.email }}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">CPF</span></label>
+                        {{ form.cpf }}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold">Telefone</span></label>
+                        {{ form.telefone }}
+                    </div>
+                    <div class="form-control md:col-span-2">
+                        <label class="label"><span class="label-text font-semibold">Senha</span></label>
+                        {{ form.password1 }}
+                    </div>
+                    <div class="form-control md:col-span-2">
+                        <label class="label"><span class="label-text font-semibold">Confirme a senha</span></label>
+                        {{ form.password2 }}
+                    </div>
+                </div>
+
+                <div class="card-actions justify-between mt-8">
+                    <a href="{% url 'account:register_choice' %}" class="btn btn-ghost">
+                        ← Voltar
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <span class="loading loading-spinner hidden" id="loading"></span>
+                        Criar minha conta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

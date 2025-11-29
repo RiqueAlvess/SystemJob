@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Cadastre-se{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-base-200 px-4">
+    <div class="max-w-5xl w-full">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Bem-vindo à Plataforma PCD</h1>
+            <p class="text-xl text-base-content/70">Escolha como deseja se cadastrar</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+
+            <a href="{% url 'account:register_pcd' %}" 
+               class="group block transform transition-all duration-300 hover:scale-105">
+                <div class="card bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-2xl h-full">
+                    <div class="card-body items-center text-center p-12">
+                        <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                            <i class="fas fa-user text-5xl"></i>
+                        </div>
+                        <h2 class="card-title text-3xl mb-4">Sou PCD</h2>
+                        <p class="text-lg opacity-90">Quero me candidatar a vagas inclusivas</p>
+                        <div class="mt-8">
+                            <span class="btn btn-outline btn-white">Continuar como PCD →</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'account:register_company' %}" 
+               class="group block transform transition-all duration-300 hover:scale-105">
+                <div class="card bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-2xl h-full">
+                    <div class="card-body items-center text-center p-12">
+                        <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                            <i class="fas fa-building text-5xl"></i>
+                        </div>
+                        <h2 class="card-title text-3xl mb-4">Sou Empresa</h2>
+                        <p class="text-lg opacity-90">Quero contratar pessoas com deficiência</p>
+                        <div class="mt-8">
+                            <span class="btn btn-outline btn-white">Continuar como Empresa →</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="text-center mt-12">
+            <p class="text-base-content/70">
+                Já tem conta? 
+                <a href="{% url 'account:login' %}" class="link link-primary font-semibold">
+                    Faça login aqui
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

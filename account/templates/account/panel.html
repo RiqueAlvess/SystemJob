@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Painel{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-base-200 py-8 px-4">
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-10">
+            <div class="avatar online">
+                <div class="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-4">
+                    <img src="{{ user.get_foto_url }}" alt="Avatar">
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold mt-6">Olá, {{ user.nome_completo.split.0 }}!</h1>
+            <p class="text-xl opacity-70 mt-2">Painel • <span class="badge badge-lg badge-primary">{{ tipo|upper }}</span></p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+            {% if user.eh_pcd %}
+            <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body items-center text-center">
+                        <i class="fas fa-file-alt text-5xl text-primary"></i>
+                        <h2 class="card-title mt-4">Meu Currículo</h2>
+                        <a href="#" class="btn btn-primary mt-4">Editar</a>
+                    </div>
+                </div>
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body items-center text-center">
+                        <i class="fas fa-briefcase text-5xl text-success"></i>
+                        <h2 class="card-title mt-4">Vagas</h2>
+                        <a href="#" class="btn btn-success mt-4">Ver Vagas</a>
+                    </div>
+                </div>
+            {% elif user.eh_empresa %}
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body items-center text-center">
+                        <i class="fas fa-plus-circle text-5xl text-secondary"></i>
+                        <h2 class="card-title mt-4">Criar Vaga</h2>
+                        <a href="#" class="btn btn-secondary mt-4">Nova Vaga</a>
+                    </div>
+                </div>
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body items-center text-center">
+                        <i class="fas fa-list text-5xl text-info"></i>
+                        <h2 class="card-title mt-4">Minhas Vagas</h2>
+                        <a href="#" class="btn btn-info mt-4">Gerenciar</a>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body items-center text-center">
+                    <i class="fas fa-user-cog text-5xl text-warning"></i>
+                    <h2 class="card-title mt-4">Meu Perfil</h2>
+                    <a href="#" class="btn btn-warning mt-4">Editar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-12">
+            <a href="{% url 'account:logout' %}" class="btn btn-ghost btn-lg">Sair da conta</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

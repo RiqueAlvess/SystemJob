@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Cadastro concluído!{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-base-200">
+    <div class="text-center">
+        <div class="mb-12">
+            <div class="w-32 h-32 bg-success/20 rounded-full flex items-center justify-center mx-auto animate-bounce">
+                <i class="fas fa-check text-8xl text-success"></i>
+            </div>
+        </div>
+        <h1 class="text-5xl font-bold mb-6">Cadastro realizado com sucesso!</h1>
+        <p class="text-xl text-base-content/80 mb-10 max-w-lg mx-auto">
+            Bem-vindo à Plataforma PCD. Sua conta foi criada e você já pode acessar todas as funcionalidades.
+        </p>
+        <div class="space-x-4">
+            <a href="{% url 'account:login' %}" class="btn btn-primary btn-lg">
+                Fazer login agora
+            </a>
+            <a href="/" class="btn btn-ghost btn-lg">
+                Ir para a home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
