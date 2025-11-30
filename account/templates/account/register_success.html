@@ -1,24 +1,26 @@
 {% extends 'base.html' %}
-{% block title %}Cadastro concluído!{% endblock %}
+{% block title %}Bem-vindo!{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-base-200 p-4">
-    <div class="text-center max-w-lg">
-        <div class="mb-8">
-            <div class="w-24 h-24 bg-success/20 rounded-full flex items-center justify-center mx-auto animate-bounce">
-                <i class="fas fa-check text-6xl text-success"></i>
+<div class="w-full max-w-md text-center">
+    <div class="card bg-base-100 shadow-xl border border-base-200">
+        <div class="card-body items-center p-8">
+            
+            <div class="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mb-4 animate-bounce">
+                <i class="fas fa-check text-4xl text-success"></i>
             </div>
-        </div>
-        <h1 class="text-3xl md:text-4xl font-bold mb-4">Cadastro realizado com sucesso!</h1>
-        <p class="text-lg text-base-content/80 mb-6 mx-auto">
-            Bem-vindo à Plataforma PCD. Sua conta foi criada e você já pode acessar todas as funcionalidades.
-        </p>
-        <div class="space-x-3">
-            <a href="{% url 'account:login' %}" class="btn btn-primary btn-md">
-                Fazer login agora
+
+            <h1 class="text-2xl font-bold mb-2">Conta Criada!</h1>
+            <p class="text-base-content/70 mb-8">
+                Seu cadastro na Plataforma PCD foi realizado com sucesso. Você já pode acessar todos os recursos.
+            </p>
+
+            <a href="{% url 'account:login' %}" class="btn btn-primary w-full">
+                Ir para o Login
             </a>
-            <a href="/" class="btn btn-ghost btn-md">
-                Ir para a home
+            
+            <a href="/" class="btn btn-ghost btn-sm mt-2 text-base-content/60">
+                Voltar para Home
             </a>
         </div>
     </div>

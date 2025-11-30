@@ -15,66 +15,51 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
     <style>
-        /* As animações slideInRight e slideOutRight já estão OK */
+        
         @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-        
         @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
         }
-        
-        .toast-enter {
-            animation: slideInRight 0.3s ease-out;
+        .toast-enter { animation: slideInRight 0.3s ease-out; }
+        .toast-exit { animation: slideOutRight 0.3s ease-in; }
+  
+        input[type="text"], input[type="email"], input[type="password"], input[type="number"], select {
+            @apply input input-bordered w-full;
         }
-        
-        .toast-exit {
-            animation: slideOutRight 0.3s ease-in;
+
+        input[type="checkbox"] {
+            @apply checkbox checkbox-primary;
         }
     </style>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen bg-base-200">
+<body class="min-h-screen bg-base-200 text-base-content font-sans antialiased flex flex-col">
 
-    {% block content %}{% endblock %}
+    <main class="flex-grow flex items-center justify-center p-4">
+        {% block content %}{% endblock %}
+    </main>
 
-    <div class="toast toast-end z-[9999]" id="toast-container">
+    <div class="toast toast-top toast-end md:toast-bottom md:toast-end z-[9999]" id="toast-container">
         {% if messages %}
             {% for message in messages %}
-                {% comment %} Mapeamento de tags para classes do DaisyUI (o 'info' é o padrão se não for mapeado) {% endcomment %}
-                {% with tags=message.tags|default:"info" class_tag=tags|cut:"error"|cut:"success"|cut:"warning"|cut:"info" %}
-                <div class="alert alert-{{ tags|cut:class_tag }} toast-enter shadow-lg" role="alert" x-data="{ open: true }" x-show="open" x-init="setTimeout(() => { open = false; setTimeout(() => $el.remove(), 300) }, 5000)">
+                {% with tags=message.tags|default:"info" %}
+                <div class="alert alert-{{ tags }} shadow-lg toast-enter max-w-xs" 
+                     x-data="{ open: true }" 
+                     x-show="open" 
+                     x-init="setTimeout(() => { open = false; setTimeout(() => $el.remove(), 300) }, 5000)">
                     
                     <div class="flex items-center gap-2">
-                        {% if 'success' in tags %}
-                            <i class="fas fa-check-circle text-lg"></i>
-                        {% elif 'error' in tags %}
-                            <i class="fas fa-exclamation-circle text-lg"></i>
-                        {% elif 'warning' in tags %}
-                            <i class="fas fa-exclamation-triangle text-lg"></i>
-                        {% else %}
-                            <i class="fas fa-info-circle text-lg"></i>
-                        {% endif %}
-                        <span>{{ message }}</span>
+                        {% if 'success' in tags %}<i class="fas fa-check-circle"></i>
+                        {% elif 'error' in tags %}<i class="fas fa-exclamation-circle"></i>
+                        {% elif 'warning' in tags %}<i class="fas fa-exclamation-triangle"></i>
+                        {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+                        <span class="text-sm font-medium">{{ message }}</span>
                     </div>
-                    <button class="btn btn-ghost btn-sm btn-circle" @click="open = false; setTimeout(() => $el.remove(), 300)">
-                        <i class="fas fa-times"></i>
-                    </button>
                 </div>
                 {% endwith %}
             {% endfor %}

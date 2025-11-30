@@ -2,98 +2,79 @@
 {% block title %}Login - Plataforma PCD{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-base-200 to-secondary/5">
-    <div class="w-full max-w-md">
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body p-6">
-                
-                <!-- Header Compacto -->
-                <div class="text-center mb-4">
-                    <div class="avatar placeholder mb-3">
-                        <div class="bg-primary text-primary-content rounded-full w-16">
-                            <i class="fas fa-universal-access text-2xl"></i>
-                        </div>
+<div class="w-full max-w-sm">
+    <div class="card bg-base-100 shadow-xl border border-base-300">
+        <div class="card-body p-8">
+            
+            <div class="text-center mb-6">
+                <div class="avatar placeholder mb-3 inline-flex">
+                    <div class="bg-primary/10 text-primary rounded-full w-16 h-16 flex items-center justify-center">
+                        <i class="fas fa-universal-access text-3xl"></i>
                     </div>
-                    <h1 class="text-2xl font-bold">Bem-vindo!</h1>
-                    <p class="text-sm text-base-content/70 mt-1">Acesse sua conta</p>
                 </div>
-
-                <!-- Formulário Compacto -->
-                <form method="post" class="space-y-3">
-                    {% csrf_token %}
-
-                    <!-- E-mail -->
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-sm font-semibold">E-mail</span>
-                        </label>
-                        {{ form.email }}
-                        {% if form.email.errors %}
-                            <label class="label py-1">
-                                <span class="label-text-alt text-error text-xs">{{ form.email.errors.0 }}</span>
-                            </label>
-                        {% endif %}
-                    </div>
-
-                    <!-- Senha -->
-                    <div class="form-control">
-                        <label class="label py-1">
-                            <span class="label-text text-sm font-semibold">Senha</span>
-                        </label>
-                        {{ form.password }}
-                        {% if form.password.errors %}
-                            <label class="label py-1">
-                                <span class="label-text-alt text-error text-xs">{{ form.password.errors.0 }}</span>
-                            </label>
-                        {% endif %}
-                    </div>
-
-                    <!-- Erros gerais -->
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-error py-2">
-                            <i class="fas fa-exclamation-circle text-sm"></i>
-                            <span class="text-sm">{{ form.non_field_errors.0 }}</span>
-                        </div>
-                    {% endif %}
-
-                    <!-- Opções inline -->
-                    <div class="flex justify-between items-center text-xs">
-                        <label class="cursor-pointer flex items-center gap-1">
-                            <input type="checkbox" name="remember" class="checkbox checkbox-xs" />
-                            <span>Lembrar-me</span>
-                        </label>
-                        <a href="{% url 'forgot_password' %}" class="link link-primary">
-                            Esqueci a senha
-                        </a>
-                    </div>
-
-                    <!-- Botão -->
-                    <button type="submit" class="btn btn-primary w-full">
-                        <i class="fas fa-sign-in-alt"></i>
-                        Entrar
-                    </button>
-                </form>
-
-                <!-- Divider Compacto -->
-                <div class="divider my-3 text-xs">OU</div>
-
-                <!-- Criar conta -->
-                <div class="text-center">
-                    <p class="text-xs text-base-content/70 mb-2">Ainda não tem conta?</p>
-                    <a href="{% url 'account:register_choice' %}" class="btn btn-outline btn-primary btn-sm w-full">
-                        <i class="fas fa-user-plus"></i>
-                        Criar conta
-                    </a>
-                </div>
+                <h1 class="text-2xl font-bold text-base-content">Bem-vindo de volta!</h1>
+                <p class="text-sm text-base-content/60">Insira suas credenciais para acessar.</p>
             </div>
-        </div>
 
-        <!-- Link voltar -->
-        <div class="text-center mt-3">
-            <a href="/" class="link link-neutral text-xs">
-                <i class="fas fa-arrow-left mr-1"></i>Voltar
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="form-control w-full">
+                    <label class="label pt-0 pb-1">
+                        <span class="label-text font-medium">E-mail</span>
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <span class="text-error text-xs mt-1">{{ form.email.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="form-control w-full">
+                    <label class="label pt-0 pb-1">
+                        <span class="label-text font-medium">Senha</span>
+                    </label>
+                    {{ form.password }}
+                    <label class="label pt-1 pb-0 justify-end">
+                        <a href="{% url 'forgot_password' %}" class="label-text-alt link link-primary no-underline hover:underline">
+                            Esqueceu a senha?
+                        </a>
+                    </label>
+                    {% if form.password.errors %}
+                        <span class="text-error text-xs mt-1">{{ form.password.errors.0 }}</span>
+                    {% endif %}
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-error text-sm py-2 rounded-lg">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>{{ form.non_field_errors.0 }}</span>
+                    </div>
+                {% endif %}
+
+                <div class="form-control">
+                    <label class="cursor-pointer flex items-center gap-2">
+                        <input type="checkbox" name="remember" class="checkbox checkbox-sm checkbox-primary" />
+                        <span class="label-text">Lembrar-me neste dispositivo</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full text-lg shadow-md mt-2">
+                    Entrar <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                </button>
+            </form>
+
+            <div class="divider my-6 text-xs text-base-content/50">NOVO POR AQUI?</div>
+
+            <a href="{% url 'account:register_choice' %}" class="btn btn-outline btn-block border-base-300 hover:bg-base-200 hover:border-base-400 font-normal">
+                Criar uma conta
             </a>
         </div>
+    </div>
+    
+    <div class="text-center mt-6">
+        <a href="/" class="link link-hover text-sm text-base-content/60 flex items-center justify-center gap-1">
+            <i class="fas fa-chevron-left text-xs"></i> Voltar para Home
+        </a>
     </div>
 </div>
 {% endblock %}
