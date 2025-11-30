@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="emerald">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,38 +9,78 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <style>
+        /* As animações slideInRight e slideOutRight já estão OK */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        .toast-enter {
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        .toast-exit {
+            animation: slideOutRight 0.3s ease-in;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen bg-base-200">
 
-    <div class="container mx-auto px-4 py-8">
-        {% block content %}{% endblock %}
-    </div>
+    {% block content %}{% endblock %}
 
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-3">
+    <div class="toast toast-end z-[9999]" id="toast-container">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} shadow-lg animate-slide-in">
-                    <div>
-                        {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>{% endif %}
-                        {% if message.tags == 'error' %}<i class="fas fa-exclamation-triangle"></i>{% endif %}
-                        {% if message.tags == 'warning' %}<i class="fas fa-exclamation-circle"></i>{% endif %}
+                {% comment %} Mapeamento de tags para classes do DaisyUI (o 'info' é o padrão se não for mapeado) {% endcomment %}
+                {% with tags=message.tags|default:"info" class_tag=tags|cut:"error"|cut:"success"|cut:"warning"|cut:"info" %}
+                <div class="alert alert-{{ tags|cut:class_tag }} toast-enter shadow-lg" role="alert" x-data="{ open: true }" x-show="open" x-init="setTimeout(() => { open = false; setTimeout(() => $el.remove(), 300) }, 5000)">
+                    
+                    <div class="flex items-center gap-2">
+                        {% if 'success' in tags %}
+                            <i class="fas fa-check-circle text-lg"></i>
+                        {% elif 'error' in tags %}
+                            <i class="fas fa-exclamation-circle text-lg"></i>
+                        {% elif 'warning' in tags %}
+                            <i class="fas fa-exclamation-triangle text-lg"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle text-lg"></i>
+                        {% endif %}
                         <span>{{ message }}</span>
                     </div>
-                    <button class="btn btn-ghost btn-xs" onclick="this.parentElement.remove()">×</button>
+                    <button class="btn btn-ghost btn-sm btn-circle" @click="open = false; setTimeout(() => $el.remove(), 300)">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
+                {% endwith %}
             {% endfor %}
         {% endif %}
     </div>
 
-    <style>
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .animate-slide-in { animation: slideIn 0.5s ease-out; }
-    </style>
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

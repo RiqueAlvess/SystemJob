@@ -6,15 +6,19 @@ from django.core.validators import FileExtensionValidator
 
 
 def avatar_upload_path(instance, filename):
+    """Gera path único para upload de avatar"""
     ext = filename.split('.')[-1].lower()
     if ext not in ['jpg', 'jpeg', 'png', 'webp']:
         ext = 'webp'
     year = timezone.now().strftime('%Y')
     month = timezone.now().strftime('%m')
-    return f"avatars/{year}/{month}/{instance.user.pk}_{int(timezone.time() * 1000000)}.{ext}"
+    timestamp = int(timezone.now().timestamp() * 1000000)
+    return f"avatars/{year}/{month}/{instance.user.pk}_{timestamp}.{ext}"
 
 
 class UserManager(BaseUserManager):
+    """Manager customizado para o modelo User"""
+    
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('O e-mail é obrigatório')
@@ -32,27 +36,47 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    """Modelo de usuário customizado"""
+    
     username = None
     email = models.EmailField('E-mail', unique=True)
     nome_completo = models.CharField('Nome completo', max_length=255)
 
-    SEXO_CHOICES = [('M', 'Masculino'), ('F', 'Feminino'), ('O', 'Outro/Prefiro não dizer')]
+    SEXO_CHOICES = [
+        ('M', 'Masculino'),
+        ('F', 'Feminino'),
+        ('O', 'Outro/Prefiro não dizer')
+    ]
     sexo = models.CharField('Sexo', max_length=1, choices=SEXO_CHOICES, blank=True)
     telefone = models.CharField('Telefone', max_length=20, blank=True)
 
-    avatar_id = models.PositiveBigIntegerField(null=True, blank=True, editable=False, db_index=True)
+    avatar_id = models.PositiveBigIntegerField(
+        null=True, blank=True, editable=False, db_index=True
+    )
 
     criado_em = models.DateTimeField(auto_now_add=True)
-    criado_por = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
-                                   related_name='usuarios_criados', editable=False)
+    criado_por = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='usuarios_criados', editable=False
+    )
     modificado_em = models.DateTimeField(auto_now=True)
-    modificado_por = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
-                                       related_name='usuarios_modificados', editable=False)
+    modificado_por = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='usuarios_modificados', editable=False
+    )
     ultima_sessao = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['nome_completo']
     objects = UserManager()
+
+    class Meta:
+        verbose_name = 'Usuário'
+        verbose_name_plural = 'Usuários'
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return self.nome_completo.strip() or self.email or f"Usuário {self.pk}"
 
     def save(self, *args, **kwargs):
         request = kwargs.pop('request', None)
@@ -68,10 +92,8 @@ class User(AbstractUser):
 
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return self.nome_completo.strip() or self.email or f"Usuário {self.pk}"
-
     def get_foto_url(self):
+        """Retorna URL da foto do usuário"""
         avatar = self.avatars.filter(is_atual=True).first()
         return avatar.imagem.url if avatar and avatar.imagem else '/static/img/avatar-default.png'
 
@@ -99,13 +121,10 @@ class User(AbstractUser):
             return 'empresa'
         return 'desconhecido'
 
-    class Meta:
-        verbose_name = 'Usuário'
-        verbose_name_plural = 'Usuários'
-        ordering = ['-criado_em']
-
 
 class UserAvatar(models.Model):
+    """Modelo para armazenar avatares dos usuários"""
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='avatars')
     imagem = models.ImageField(
         upload_to=avatar_upload_path,
@@ -144,9 +163,13 @@ class UserAvatar(models.Model):
 
 
 class PerfilPCD(models.Model):
+    """Perfil para Pessoa com Deficiência"""
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_pcd')
     cpf = models.CharField('CPF', max_length=14, unique=True)
-    data_nascimento = models.DateField('Data de nascimento')
+    data_nascimento = models.DateField('Data de nascimento', null=True, blank=True)
+    
+    # Endereço
     cep = models.CharField(max_length=9, blank=True)
     rua = models.CharField(max_length=255, blank=True)
     numero = models.CharField(max_length=20, blank=True)
@@ -154,18 +177,20 @@ class PerfilPCD(models.Model):
     bairro = models.CharField(max_length=100, blank=True)
     cidade = models.CharField(max_length=100, blank=True)
     uf = models.CharField(max_length=2, blank=True)
+    
+    # Deficiências e documentos
     deficiencias = models.ManyToManyField('CategoriaDeficiencia', blank=True)
     curriculo = models.FileField(upload_to='curriculos/', blank=True, null=True)
     laudo_medico = models.FileField(upload_to='laudos/', blank=True, null=True)
+    
+    STATUS_CHOICES = [
+        ('pendente', 'Pendente'),
+        ('enquadravel', 'Enquadrável'),
+        ('sugestivo', 'Sugestivo'),
+        ('nao_enquadravel', 'Não enquadrável')
+    ]
     status_medico = models.CharField(
-        max_length=20,
-        choices=[
-            ('pendente', 'Pendente'),
-            ('enquadravel', 'Enquadrável'),
-            ('sugestivo', 'Sugestivo'),
-            ('nao_enquadravel', 'Não enquadrável')
-        ],
-        default='pendente'
+        max_length=20, choices=STATUS_CHOICES, default='pendente'
     )
     percentual_perfil = models.PositiveSmallIntegerField(default=30, editable=False)
 
@@ -174,6 +199,8 @@ class PerfilPCD(models.Model):
 
 
 class PerfilMedico(models.Model):
+    """Perfil para Médico"""
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_medico')
     crm = models.CharField('CRM', max_length=20, unique=True)
     uf_crm = models.CharField('UF do CRM', max_length=2)
@@ -184,6 +211,8 @@ class PerfilMedico(models.Model):
 
 
 class PerfilEmpresa(models.Model):
+    """Perfil para Empresa"""
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_empresa')
     cnpj = models.CharField('CNPJ', max_length=18, unique=True)
     razao_social = models.CharField('Razão Social', max_length=255)
@@ -197,6 +226,8 @@ class PerfilEmpresa(models.Model):
 
 
 class CategoriaDeficiencia(models.Model):
+    """Categorias de deficiência"""
+    
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField(blank=True)
 
@@ -209,6 +240,8 @@ class CategoriaDeficiencia(models.Model):
 
 
 class Especialidade(models.Model):
+    """Especialidades médicas"""
+    
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField(blank=True)
 

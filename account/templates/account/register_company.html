@@ -2,59 +2,79 @@
 {% block title %}Cadastro - Empresa{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-base-200 px-4">
+<div class="min-h-screen flex items-center justify-center bg-base-200 px-4 py-6">
     <div class="card w-full max-w-3xl bg-base-100 shadow-2xl">
-        <div class="card-body">
-            <div class="text-center mb-8">
-                <i class="fas fa-building text-6xl text-purple-600 mb-4"></i>
-                <h1 class="text-3xl font-bold">Cadastro - Empresa</h1>
-                <p class="text-base-content/70">Preencha os dados da sua empresa</p>
-            </div>
-
-            <form method="post" hx-post="" hx-target="this" hx-swap="outerHTML">
-                {% csrf_token %}
-                
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Razão Social</span></label>
-                        {{ form.razao_social }}
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Nome Fantasia</span></label>
-                        {{ form.nome_fantasia }}
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">CNPJ</span></label>
-                        {{ form.cnpj }}
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">E-mail Corporativo</span></label>
-                        {{ form.email }}
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Telefone</span></label>
-                        {{ form.telefone }}
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Responsável</span></label>
-                        {{ form.responsavel }}
-                    </div>
-                    <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Senha</span></label>
-                        {{ form.password1 }}
-                    </div>
-                    <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Confirme a senha</span></label>
-                        {{ form.password2 }}
+        <div class="card-body p-6 md:p-8">
+            <div class="text-center mb-6">
+                <div class="avatar placeholder mb-3">
+                    <div class="bg-secondary text-secondary-content rounded-full w-14 md:w-16">
+                        <i class="fas fa-building text-xl md:text-2xl"></i>
                     </div>
                 </div>
+                <h1 class="text-xl md:text-2xl font-bold">Cadastro - Empresa</h1>
+                <p class="text-base-content/70 text-sm">Preencha os dados da sua empresa</p>
+            </div>
 
-                <div class="card-actions justify-between mt-8">
-                    <a href="{% url 'account:register_choice' %}" class="btn btn-ghost">
-                        ← Voltar
+            <form method="post" hx-post="" hx-target="this" hx-swap="outerHTML" class="space-y-3">
+                {% csrf_token %}
+                
+                <div class="grid md:grid-cols-2 gap-3">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold text-sm">Razão Social</span></label>
+                        {{ form.razao_social }}
+                        {% if form.razao_social.errors %}<div class="text-error text-xs mt-1">{{ form.razao_social.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold text-sm">Nome Fantasia</span></label>
+                        {{ form.nome_fantasia }}
+                        {% if form.nome_fantasia.errors %}<div class="text-error text-xs mt-1">{{ form.nome_fantasia.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold text-sm">CNPJ</span></label>
+                        {{ form.cnpj }}
+                        {% if form.cnpj.errors %}<div class="text-error text-xs mt-1">{{ form.cnpj.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold text-sm">E-mail</span></label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<div class="text-error text-xs mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold text-sm">Telefone</span></label>
+                        {{ form.telefone }}
+                        {% if form.telefone.errors %"><div class="text-error text-xs mt-1">{{ form.telefone.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold text-sm">Responsável</span></label>
+                        {{ form.responsavel }}
+                        {% if form.responsavel.errors %}<div class="text-error text-xs mt-1">{{ form.responsavel.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold text-sm">Senha</span></label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}<div class="text-error text-xs mt-1">{{ form.password1.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-semibold text-sm">Confirme a senha</span></label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}<div class="text-error text-xs mt-1">{{ form.password2.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-error md:col-span-2 mt-3 p-2">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>{{ form.non_field_errors.0 }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-3 justify-between pt-3">
+                    <a href="{% url 'account:register_choice' %}" class="btn btn-ghost gap-2 btn-sm order-2 md:order-1">
+                        <i class="fas fa-arrow-left"></i>
+                        Voltar
                     </a>
-                    <button type="submit" class="btn btn-primary btn-lg px-12">
-                        <span class="loading loading-spinner hidden" id="loading"></span>
+                    <button type="submit" class="btn btn-primary btn-md gap-2 order-1 md:order-2">
+                        <i class="fas fa-building"></i>
                         Cadastrar Empresa
                     </button>
                 </div>

@@ -1,54 +1,102 @@
 {% extends 'base.html' %}
-{% block title %}Cadastro PCD{% endblock %}
+{% block title %}Cadastro PCD - Plataforma PCD{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-base-200 px-4">
-    <div class="card w-full max-w-2xl bg-base-100 shadow-2xl">
-        <div class="card-body">
-            <div class="text-center mb-8">
-                <i class="fas fa-user text-6xl text-blue-600 mb-4"></i>
-                <h1 class="text-3xl font-bold">Cadastro - Pessoa com Deficiência</h1>
+<div class="min-h-screen flex items-center justify-center p-4 bg-base-200">
+    <div class="w-full max-w-3xl">
+        <div class="card bg-base-100 shadow-2xl">
+            <div class="card-body p-6 md:p-8">
+                <div class="text-center mb-6">
+                    <div class="avatar placeholder mb-3">
+                        <div class="bg-primary text-primary-content rounded-full w-14 md:w-16">
+                            <i class="fas fa-wheelchair text-xl md:text-2xl"></i>
+                        </div>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold">Cadastro - Pessoa com Deficiência</h1>
+                    <p class="text-base-content/70 mt-1 text-sm">Preencha seus dados para começar</p>
+                </div>
+
+                <form method="post" class="space-y-3" x-data>
+                    {% csrf_token %}
+                    
+                    <div class="grid md:grid-cols-2 gap-3">
+                        <div class="form-control md:col-span-2">
+                            <label class="label"><span class="label-text font-semibold text-sm">Nome completo</span></label>
+                            {{ form.nome_completo }}
+                            {% if form.nome_completo.errors %}<div class="text-error text-xs mt-1">{{ form.nome_completo.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-sm">E-mail</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-error text-xs mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-sm">CPF</span></label>
+                            {{ form.cpf }}
+                            {% if form.cpf.errors %}<div class="text-error text-xs mt-1">{{ form.cpf.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-sm">Data de Nascimento</span></label>
+                            {{ form.data_nascimento }}
+                            {% if form.data_nascimento.errors %}<div class="text-error text-xs mt-1">{{ form.data_nascimento.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-sm">Telefone</span></label>
+                            {{ form.telefone }}
+                            {% if form.telefone.errors %}<div class="text-error text-xs mt-1">{{ form.telefone.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="form-control md:col-span-2">
+                            <label class="label"><span class="label-text font-semibold text-sm">Tipo de Deficiência</span></label>
+                            {{ form.tipo_deficiencia }}
+                            {% if form.tipo_deficiencia.errors %}<div class="text-error text-xs mt-1">{{ form.tipo_deficiencia.errors.0 }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-sm">Senha</span></label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}<div class="text-error text-xs mt-1">{{ form.password1.errors.0 }}</div>{% endif %}
+                        </div>
+                        
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-semibold text-sm">Confirme a senha</span></label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}<div class="text-error text-xs mt-1">{{ form.password2.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-error md:col-span-2 mt-3 p-2">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>{{ form.non_field_errors.0 }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-3 justify-between pt-3">
+                        <a href="{% url 'account:register_choice' %}" class="btn btn-ghost gap-2 btn-sm order-2 md:order-1">
+                            <i class="fas fa-arrow-left"></i>
+                            Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-md gap-2 order-1 md:order-2">
+                            <i class="fas fa-user-plus"></i>
+                            Criar minha conta
+                        </button>
+                    </div>
+                </form>
             </div>
+        </div>
 
-            <form method="post" hx-post="" hx-target="this" hx-swap="outerHTML">
-                {% csrf_token %}
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Nome completo</span></label>
-                        {{ form.nome_completo }}
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">E-mail</span></label>
-                        {{ form.email }}
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">CPF</span></label>
-                        {{ form.cpf }}
-                    </div>
-                    <div class="form-control">
-                        <label class="label"><span class="label-text font-semibold">Telefone</span></label>
-                        {{ form.telefone }}
-                    </div>
-                    <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Senha</span></label>
-                        {{ form.password1 }}
-                    </div>
-                    <div class="form-control md:col-span-2">
-                        <label class="label"><span class="label-text font-semibold">Confirme a senha</span></label>
-                        {{ form.password2 }}
-                    </div>
-                </div>
-
-                <div class="card-actions justify-between mt-8">
-                    <a href="{% url 'account:register_choice' %}" class="btn btn-ghost">
-                        ← Voltar
-                    </a>
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <span class="loading loading-spinner hidden" id="loading"></span>
-                        Criar minha conta
-                    </button>
-                </div>
-            </form>
+        <div class="text-center mt-4">
+            <p class="text-base-content/70 text-sm">
+                Já tem conta? 
+                <a href="{% url 'account:login' %}" class="link link-primary font-semibold">
+                    Faça login aqui
+                </a>
+            </p>
         </div>
     </div>
 </div>
