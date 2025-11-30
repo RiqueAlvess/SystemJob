@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Escolha seu perfil{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl text-center">
+    
+    <h1 class="text-3xl font-bold mb-2">Como você deseja se cadastrar?</h1>
+    <p class="text-base-content/60 mb-8">Selecione o perfil que melhor se encaixa em você.</p>
+
+    <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        
+        <a href="{% url 'account:register_pcd' %}" class="card bg-base-100 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-base-200 group text-left">
+            <div class="card-body">
+                <div class="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-2 group-hover:bg-primary group-hover:text-primary-content transition-colors">
+                    <i class="fas fa-user text-2xl"></i>
+                </div>
+                <h2 class="card-title text-xl">Sou Candidato (PCD)</h2>
+                <p class="text-base-content/70 text-sm">Busco oportunidades de emprego inclusivas e quero cadastrar meu currículo.</p>
+                <div class="card-actions justify-end mt-4">
+                    <span class="btn btn-circle btn-sm btn-ghost group-hover:bg-primary/20"><i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </a>
+
+        <a href="{% url 'account:register_company' %}" class="card bg-base-100 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-base-200 group text-left">
+            <div class="card-body">
+                <div class="w-14 h-14 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center mb-2 group-hover:bg-secondary group-hover:text-secondary-content transition-colors">
+                    <i class="fas fa-building text-2xl"></i>
+                </div>
+                <h2 class="card-title text-xl">Sou Empresa</h2>
+                <p class="text-base-content/70 text-sm">Quero divulgar vagas e contratar profissionais com deficiência.</p>
+                <div class="card-actions justify-end mt-4">
+                    <span class="btn btn-circle btn-sm btn-ghost group-hover:bg-secondary/20"><i class="fas fa-arrow-right"></i></span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <p class="mt-8 text-sm text-base-content/60">
+        Já possui cadastro? <a href="{% url 'account:login' %}" class="link link-primary font-semibold">Fazer Login</a>
+    </p>
+</div>
+{% endblock %}
