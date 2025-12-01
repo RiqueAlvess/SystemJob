@@ -18,6 +18,7 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'account.User'
 
 INSTALLED_APPS = [
+    'job_vacancies',
     'storages',
     'account',
     'django.contrib.admin',
@@ -169,3 +170,11 @@ LOGGING = {
 LOG_DIR = BASE_DIR / 'logs'
 if not LOG_DIR.exists():
     LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+
+
+CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'

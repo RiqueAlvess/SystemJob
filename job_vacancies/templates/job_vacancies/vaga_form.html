@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - Plataforma PCD{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h1 class="text-3xl font-bold mb-6">{{ title }}</h1>
+
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                {{ form.media }}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">{{ form.titulo }}</div>
+                    <div>{{ form.tipo }}</div>
+                    <div>{{ form.modalidade }}</div>
+                    <div>{{ form.localizacao }}</div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-medium">Salário Mínimo</span></label>
+                        {{ form.salario_min }}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text font-medium">Salário Máximo</span></label>
+                        {{ form.salario_max }}
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="cursor-pointer label justify-start gap-3">
+                            <input type="checkbox" class="checkbox checkbox-primary" name="{{ form.mostrar_salario.name }}" {% if form.mostrar_salario.value %}checked{% endif %}>
+                            <span class="label-text">Mostrar faixa salarial na vaga</span>
+                        </label>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        {{ form.descricao }}
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="label"><span class="label-text font-medium">Recursos de Acessibilidade Disponíveis</span></label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {{ form.recursos_disponiveis }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-8">
+                    <a href="{% url 'job_vacancies:minhas_vagas' %}" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit" class="btn btn-primary px-8">Salvar como Rascunho</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

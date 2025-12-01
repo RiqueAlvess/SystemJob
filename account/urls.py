@@ -9,6 +9,8 @@ urlpatterns = [
     path("register/company/", views.RegisterCompanyView.as_view(), name="register_company"),
     path("login/", views.LoginView.as_view(), name="login"),
     path("logout/", views.CustomLogoutView.as_view(), name="logout"),
+
+    #Remover
     path("panel/", views.PanelView.as_view(), name="panel"),
 
     path("forgot-password/", views.PasswordResetView.request_view, name="forgot_password"),
