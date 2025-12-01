@@ -18,6 +18,7 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'account.User'
 
 INSTALLED_APPS = [
+    'doctor',
     'job_vacancies',
     'storages',
     'account',

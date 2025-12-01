@@ -12,11 +12,15 @@ import resend
 import logging
 from .models import User, PerfilPCD, PerfilEmpresa
 from .constants import Messages
+from django.contrib.auth.models import Group
 
 logger = logging.getLogger(__name__)
 
 resend.api_key = settings.API_RESEND
 
+def register_doctor_user(form):
+    doctor_group, _= Group.objects.get_or_create(name='Médico')
+    User.groups.add(doctor_group)
 
 def update_user_metadata(user, request=None, update_session=False):
     if request and request.user.is_authenticated:

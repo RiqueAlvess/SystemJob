@@ -1,10 +1,22 @@
 from django.db import transaction
 from django.contrib import messages
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render, redirect, get_object_or_404
 from django.core.exceptions import PermissionDenied, ValidationError
 from account.models import User
 from .models import Vaga, AvaliacaoVagaMedica, Candidatura, Conversa
 from datetime import timezone
+from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
+from .forms import VagaForm
+
+
+class VagaPublicarView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        vaga = get_object_or_404(Vaga, pk=pk, empresa=request.user, status='aprovada')
+        vaga.publicar()  
+        messages.success(request, "Vaga publicada com sucesso!")
+        return redirect("job_vacancies:minhas_vagas")
 
 
 def criar_vaga(empresa_user: User, dados: dict) -> Vaga:
@@ -31,21 +43,28 @@ def submeter_para_aprovacao(vaga: Vaga, empresa_user: User):
     vaga.save(update_fields=['status'])
 
 
-def aprovar_vaga_medico(vaga: Vaga, medico_user: User, deficiencias_ids: list, observacoes: str = "", ajustes: str = ""):
-    if medico_user.tipo != 'medico':
-        raise PermissionDenied("Apenas médicos podem aprovar")
+def aprovar_vaga_medico(vaga, medico_user, deficiencias_ids, observacoes="", ajustes="", status_avaliacao='aprovada'):
+    if not medico_user.groups.filter(name='Médico').exists():
+        raise PermissionDenied("Apenas médicos podem avaliar vagas")
 
     with transaction.atomic():
-        avaliacao = vaga.avaliacoes_medicas.latest('avaliado_em')
+
+        avaliacao = vaga.avaliacoes_medicas.latest('id')
         avaliacao.medico = medico_user
         avaliacao.deficiencias_elegiveis.set(deficiencias_ids)
+        avaliacao.status = status_avaliacao
         avaliacao.observacoes = observacoes
         avaliacao.ajustes_recomendados = ajustes
-        avaliacao.status = 'aprovada'
         avaliacao.avaliado_em = timezone.now()
         avaliacao.save()
 
-        vaga.status = 'aprovada'
+        if status_avaliacao == 'aprovada':
+            vaga.status = 'aprovada'
+        elif status_avaliacao == 'rejeitada':
+            vaga.status = 'rejeitada'
+        elif status_avaliacao == 'ajustes_necessarios':
+            vaga.status = 'ajustes_necessarios'
+
         vaga.save(update_fields=['status'])
 
 

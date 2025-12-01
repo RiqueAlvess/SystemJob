@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Médico - Plataforma PCD{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-8">Bem-vindo, Dr(a). {{ user.nome_completo.split.0 }}</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat bg-base-100 rounded-box shadow">
+            <div class="stat-title">Vagas na fila</div>
+            <div class="stat-value text-primary">{{ vagas_pendentes }}</div>
+            <div class="stat-desc">aguardando sua análise</div>
+        </div>
+
+        <div class="stat bg-base-100 rounded-box shadow">
+            <div class="stat-title">Avaliadas (30d)</div>
+            <div class="stat-value">{{ metricas.total_30d }}</div>
+        </div>
+
+        <div class="stat bg-base-100 rounded-box shadow">
+            <div class="stat-title">Taxa de Aprovação</div>
+            <div class="stat-value text-success">{{ metricas.taxa_aprovacao }}%</div>
+            <div class="stat-desc">nos últimos 30 dias</div>
+        </div>
+
+        <div class="stat bg-base-100 rounded-box shadow">
+            <div class="stat-title">Tempo Médio</div>
+            <div class="stat-value text-secondary">
+                {% if metricas.tempo_medio %}
+                    {{ metricas.tempo_medio|time:"H\i" }}
+                {% else %}—{% endif %}
+            </div>
+            <div class="stat-desc">da submissão até avaliação</div>
+        </div>
+    </div>
+
+    <div class="flex gap-4">
+        <a href="{% url 'medico:fila_aprovacao' %}" class="btn btn-primary btn-lg">
+            Ir para Fila de Aprovação
+        </a>
+        <a href="{% url 'medico:historico' %}" class="btn btn-outline btn-lg">
+            Ver Histórico Completo
+        </a>
+    </div>
+</div>
+{% endblock %}

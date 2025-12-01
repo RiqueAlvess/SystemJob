@@ -5,10 +5,8 @@ from django.contrib import messages
 from django.db.models import Q
 from .models import Vaga, Candidatura
 from .forms import VagaForm
-from .services import (
-    criar_vaga, submeter_para_aprovacao,
-    candidatar_pcd, VagaPublicarView
-)
+from .services import criar_vaga, submeter_para_aprovacao
+
 
 
 class MinhasVagasListView(LoginRequiredMixin, View):

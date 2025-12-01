@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Avaliar Vaga - Dr. {{ user.nome_completo }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">Avaliar Vaga</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">{{ vaga.titulo }}</h2>
+                <p><strong>Empresa:</strong> {{ vaga.empresa.nome_completo }}</p>
+                <p><strong>Modalidade:</strong> {{ vaga.get_modalidade_display }}</p>
+                <p><strong>Local:</strong> {{ vaga.localizacao|default:"Remoto" }}</p>
+
+                <div class="divider">Recursos Disponíveis</div>
+                {% for rec in vaga.recursos_disponiveis.all %}
+                    <div class="badge badge-success badge-outline">{{ rec.nome }}</div>
+                {% empty %}
+                    <p class="text-warning">Nenhum recurso informado</p>
+                {% endfor %}
+
+                <div class="divider">Descrição</div>
+                <p class="whitespace-pre-wrap">{{ vaga.descricao }}</p>
+            </div>
+        </div>
+
+        <form method="post" class="card bg-base-100 shadow-xl">
+            {% csrf_token %}
+            <div class="card-body">
+                <h3 class="text-xl font-bold mb-4">Deficiências Compatíveis</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    {% for def in deficiencias %}
+                    <label class="cursor-pointer label justify-start gap-3">
+                        <input type="checkbox" name="deficiencias" value="{{ def.id }}"
+                               class="checkbox checkbox-primary"
+                               {% if def.id in avaliacao.deficiencias_elegiveis.all.values_list('id', flat=True) %}checked{% endif %}>
+                        <span>{{ def.nome }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="form-control mt-6">
+                    <label class="label"><span class="label-text font-medium">Status da Avaliação</span></label>
+                    <select name="status" class="select select-bordered w-full" required>
+                        <option value="aprovada">Aprovada</option>
+                        <option value="rejeitada">Rejeitada</option>
+                        <option value="ajustes_necessarios">Ajustes Necessários</option>
+                    </select>
+                </div>
+
+                <div class="form-control">
+                    <label class="label"><span class="label-text">Observações (opcional)</span></label>
+                    <textarea name="observacoes" class="textarea textarea-bordered" rows="3"></textarea>
+                </div>
+
+                <div class="form-control">
+                    <label class="label"><span class="label-text">Ajustes Recomendados (se necessário)</span></label>
+                    <textarea name="ajustes" class="textarea textarea-bordered" rows="3"></textarea>
+                </div>
+
+                <div class="card-actions justify-end mt-6 gap-4">
+                    <a href="{% url 'doctor:fila' %}" class="btn btn-ghost">Cancelar</a>
+                    <button type="submit" class="btn btn-success px-8">Salvar Avaliação</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
