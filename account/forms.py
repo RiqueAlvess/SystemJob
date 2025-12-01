@@ -1,9 +1,10 @@
 from django import forms
 from django.contrib.auth import authenticate
 from .models import User, PerfilPCD, PerfilEmpresa
+from .mixins import PasswordValidationMixin
 
 
-class PCDRegistrationForm(forms.ModelForm):
+class PCDRegistrationForm(PasswordValidationMixin, forms.ModelForm):
     
     password1 = forms.CharField(
         label="Senha",
@@ -66,20 +67,8 @@ class PCDRegistrationForm(forms.ModelForm):
             raise forms.ValidationError("Este e-mail já está cadastrado.")
         return email
 
-    def clean_password2(self):
-        p1 = self.cleaned_data.get("password1")
-        p2 = self.cleaned_data.get("password2")
-        
-        if p1 and p2:
-            if p1 != p2:
-                raise forms.ValidationError("As senhas não coincidem")
-            if len(p1) < 8:
-                raise forms.ValidationError("A senha deve ter no mínimo 8 caracteres")
-        
-        return p2
 
-
-class CompanyRegistrationForm(forms.ModelForm):
+class CompanyRegistrationForm(PasswordValidationMixin, forms.ModelForm):
     
     password1 = forms.CharField(
         label="Senha",
@@ -103,30 +92,18 @@ class CompanyRegistrationForm(forms.ModelForm):
             "x-mask": "99.999.999/9999-99"
         })
     )
-    razao_social = forms.CharField(
-        max_length=255,
-        widget=forms.TextInput(attrs={
-            "class": "input input-bordered w-full",
-            "placeholder": "Razão Social da Empresa"
-        })
-    )
 
     class Meta:
         model = User
-        fields = ["nome_completo", "email", "telefone"]
+        fields = ["nome_completo", "email"]
         widgets = {
             "nome_completo": forms.TextInput(attrs={
                 "class": "input input-bordered w-full",
-                "placeholder": "Nome do responsável"
+                "placeholder": "Nome completo do responsável"
             }),
             "email": forms.EmailInput(attrs={
                 "class": "input input-bordered w-full",
-                "placeholder": "empresa@dominio.com"
-            }),
-            "telefone": forms.TextInput(attrs={
-                "class": "input input-bordered w-full",
-                "placeholder": "(00) 00000-0000",
-                "x-mask": "(99) 99999-9999"
+                "placeholder": "seu@email.com"
             }),
         }
 
@@ -142,21 +119,8 @@ class CompanyRegistrationForm(forms.ModelForm):
             raise forms.ValidationError("Este e-mail já está cadastrado.")
         return email
 
-    def clean_password2(self):
-        p1 = self.cleaned_data.get("password1")
-        p2 = self.cleaned_data.get("password2")
-        
-        if p1 and p2:
-            if p1 != p2:
-                raise forms.ValidationError("As senhas não coincidem")
-            if len(p1) < 8:
-                raise forms.ValidationError("A senha deve ter no mínimo 8 caracteres")
-        
-        return p2
-
 
 class LoginForm(forms.Form):
-    
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
             "class": "input input-bordered w-full",
@@ -175,15 +139,14 @@ class LoginForm(forms.Form):
         cleaned_data = super().clean()
         email = cleaned_data.get("email")
         password = cleaned_data.get("password")
-        
+
         if email and password:
             user = authenticate(email=email, password=password)
-            
-            if not user:
-                raise forms.ValidationError("E-mail ou senha incorretos")
+            if user is None:
+                raise forms.ValidationError("E-mail ou senha inválidos.")
             
             if not user.is_active:
-                raise forms.ValidationError("Esta conta está desativada")
+                raise forms.ValidationError("Conta desativada")
             
             self.user = user
         
@@ -209,7 +172,7 @@ class PasswordResetRequestForm(forms.Form):
         return email
 
 
-class PasswordResetConfirmForm(forms.Form):
+class PasswordResetConfirmForm(PasswordValidationMixin, forms.Form):
     
     password1 = forms.CharField(
         label="Nova Senha",
@@ -225,15 +188,3 @@ class PasswordResetConfirmForm(forms.Form):
             "placeholder": "Repita a senha"
         })
     )
-
-    def clean_password2(self):
-        p1 = self.cleaned_data.get("password1")
-        p2 = self.cleaned_data.get("password2")
-        
-        if p1 and p2:
-            if p1 != p2:
-                raise forms.ValidationError("As senhas não coincidem")
-            if len(p1) < 8:
-                raise forms.ValidationError("A senha deve ter no mínimo 8 caracteres")
-        
-        return p2

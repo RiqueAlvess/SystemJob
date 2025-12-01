@@ -3,10 +3,12 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.utils import timezone
 from django.core.validators import FileExtensionValidator
+from PIL import Image
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 def avatar_upload_path(instance, filename):
-    """Gera path único para upload de avatar"""
     ext = filename.split('.')[-1].lower()
     if ext not in ['jpg', 'jpeg', 'png', 'webp']:
         ext = 'webp'
@@ -17,8 +19,6 @@ def avatar_upload_path(instance, filename):
 
 
 class UserManager(BaseUserManager):
-    """Manager customizado para o modelo User"""
-    
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('O e-mail é obrigatório')
@@ -36,8 +36,6 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    """Modelo de usuário customizado"""
-    
     username = None
     email = models.EmailField('E-mail', unique=True)
     nome_completo = models.CharField('Nome completo', max_length=255)
@@ -79,21 +77,11 @@ class User(AbstractUser):
         return self.nome_completo.strip() or self.email or f"Usuário {self.pk}"
 
     def save(self, *args, **kwargs):
-        request = kwargs.pop('request', None)
-        atualizar_sessao = kwargs.pop('atualizar_sessao', False)
-
-        if request and request.user.is_authenticated:
-            if not self.pk:
-                self.criado_por = request.user
-            self.modificado_por = request.user
-
-        if atualizar_sessao:
-            self.ultima_sessao = timezone.now()
-
+        kwargs.pop('request', None)
+        kwargs.pop('atualizar_sessao', False)
         super().save(*args, **kwargs)
 
     def get_foto_url(self):
-        """Retorna URL da foto do usuário"""
         avatar = self.avatars.filter(is_atual=True).first()
         return avatar.imagem.url if avatar and avatar.imagem else '/static/img/avatar-default.png'
 
@@ -104,52 +92,75 @@ class User(AbstractUser):
     @property
     def eh_medico(self):
         return hasattr(self, 'perfil_medico')
-
+    
     @property
     def eh_empresa(self):
         return hasattr(self, 'perfil_empresa')
-
+    
     @property
     def tipo(self):
-        if self.is_superuser:
+        if self.is_superuser or self.is_staff:
             return 'admin'
         if self.eh_pcd:
             return 'pcd'
-        if self.eh_medico:
-            return 'medico'
         if self.eh_empresa:
             return 'empresa'
+        if self.eh_medico:
+            return 'medico'
         return 'desconhecido'
+    
+    @property
+    def primeiro_nome(self):
+        return self.nome_completo.split()[0] if self.nome_completo else ""
 
 
 class UserAvatar(models.Model):
-    """Modelo para armazenar avatares dos usuários"""
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='avatars')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='avatars'
+    )
     imagem = models.ImageField(
         upload_to=avatar_upload_path,
-        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])],
-        height_field='altura',
-        width_field='largura',
-        max_length=300
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp'])],
+        verbose_name='Imagem do Avatar',
+        help_text='Formatos aceitos: JPG, PNG, WEBP.',
+        max_length=500
     )
-    altura = models.PositiveIntegerField(editable=False, null=True)
-    largura = models.PositiveIntegerField(editable=False, null=True)
-    is_atual = models.BooleanField(default=True, db_index=True)
+    is_atual = models.BooleanField(default=True, verbose_name='Avatar atual')
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = 'Avatar de Usuário'
+        verbose_name_plural = 'Avatares de Usuário'
         ordering = ['-criado_em']
-        indexes = [models.Index(fields=['user', 'is_atual'])]
-        verbose_name = 'Avatar'
-        verbose_name_plural = 'Avatares'
+        unique_together = ('user', 'is_atual')
 
     def __str__(self):
         return f"Avatar de {self.user}"
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
+        
+        if self.imagem:
+            img = Image.open(self.imagem)
+            
+            max_size = (800, 800)
+            img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            
+            if img.mode in ('RGBA', 'P'):
+                img = img.convert('RGB')
+            
+            output = BytesIO()
+            img.save(output, format='JPEG', quality=85, optimize=True)
+            output.seek(0)
+            
+            self.imagem = InMemoryUploadedFile(
+                output, 'ImageField', 
+                f"{self.imagem.name.split('.')[0]}.jpg",
+                'image/jpeg', output.getbuffer().nbytes, None
+            )
+
         super().save(*args, **kwargs)
+        
         if is_new:
             UserAvatar.objects.filter(user=self.user).exclude(pk=self.pk).update(is_atual=False)
             self.user.avatar_id = self.pk
@@ -163,46 +174,31 @@ class UserAvatar(models.Model):
 
 
 class PerfilPCD(models.Model):
-    """Perfil para Pessoa com Deficiência"""
-    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_pcd')
     cpf = models.CharField('CPF', max_length=14, unique=True)
-    data_nascimento = models.DateField('Data de nascimento', null=True, blank=True)
-    
-    # Endereço
-    cep = models.CharField(max_length=9, blank=True)
-    rua = models.CharField(max_length=255, blank=True)
-    numero = models.CharField(max_length=20, blank=True)
-    complemento = models.CharField(max_length=100, blank=True)
-    bairro = models.CharField(max_length=100, blank=True)
-    cidade = models.CharField(max_length=100, blank=True)
-    uf = models.CharField(max_length=2, blank=True)
-    
-    # Deficiências e documentos
-    deficiencias = models.ManyToManyField('CategoriaDeficiencia', blank=True)
-    curriculo = models.FileField(upload_to='curriculos/', blank=True, null=True)
-    laudo_medico = models.FileField(upload_to='laudos/', blank=True, null=True)
-    
-    STATUS_CHOICES = [
+    data_nascimento = models.DateField('Data de Nascimento', null=True, blank=True)
+    status_medico = models.CharField('Status Médico', max_length=20, default='pendente', choices=[
         ('pendente', 'Pendente'),
-        ('enquadravel', 'Enquadrável'),
-        ('sugestivo', 'Sugestivo'),
-        ('nao_enquadravel', 'Não enquadrável')
-    ]
-    status_medico = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='pendente'
-    )
-    percentual_perfil = models.PositiveSmallIntegerField(default=30, editable=False)
-
+        ('aprovado', 'Aprovado'),
+        ('rejeitado', 'Rejeitado')
+    ])
+    percentual_perfil = models.DecimalField('Percentual de Perfil', max_digits=5, decimal_places=2, default=0)
+    
     def __str__(self):
-        return f"{self.user} (PCD)"
+        return f"Perfil PCD de {self.user}"
+
+
+class Especialidade(models.Model):
+    nome = models.CharField(max_length=100, unique=True)
+    descricao = models.TextField(blank=True)
+    
+    def __str__(self):
+        return self.nome
 
 
 class PerfilMedico(models.Model):
-    """Perfil para Médico"""
-    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_medico')
-    crm = models.CharField('CRM', max_length=20, unique=True)
+    crm = models.CharField('CRM', max_length=15, unique=True)
     uf_crm = models.CharField('UF do CRM', max_length=2)
     especialidades = models.ManyToManyField('Especialidade', blank=True)
 
@@ -211,8 +207,6 @@ class PerfilMedico(models.Model):
 
 
 class PerfilEmpresa(models.Model):
-    """Perfil para Empresa"""
-    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil_empresa')
     cnpj = models.CharField('CNPJ', max_length=18, unique=True)
     razao_social = models.CharField('Razão Social', max_length=255)
@@ -226,28 +220,12 @@ class PerfilEmpresa(models.Model):
 
 
 class CategoriaDeficiencia(models.Model):
-    """Categorias de deficiência"""
-    
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField(blank=True)
 
     class Meta:
         verbose_name = 'Categoria de Deficiência'
         verbose_name_plural = 'Categorias de Deficiência'
-
-    def __str__(self):
-        return self.nome
-
-
-class Especialidade(models.Model):
-    """Especialidades médicas"""
-    
-    nome = models.CharField(max_length=100, unique=True)
-    descricao = models.TextField(blank=True)
-
-    class Meta:
-        verbose_name = 'Especialidade'
-        verbose_name_plural = 'Especialidades'
 
     def __str__(self):
         return self.nome

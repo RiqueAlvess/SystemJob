@@ -19,6 +19,7 @@ from .services import (
     reset_user_password
 )
 from .models import User
+from .constants import Routes, Messages
 
 
 class RegisterChoiceView(View):
@@ -27,7 +28,7 @@ class RegisterChoiceView(View):
     
     def get(self, request):
         if request.user.is_authenticated:
-            return redirect("account:panel")
+            return redirect(Routes.ACCOUNT_PANEL)
         return render(request, self.template_name)
 
 
@@ -37,17 +38,25 @@ class RegisterPCDView(View):
     
     def get(self, request):
         if request.user.is_authenticated:
-            return redirect("account:panel")
+            return redirect(Routes.ACCOUNT_PANEL)
         return render(request, self.template_name, {"form": PCDRegistrationForm()})
     
     def post(self, request):
         form = PCDRegistrationForm(request.POST)
         
         if form.is_valid():
-            result = register_pcd_user(request, form)
-            if result:
-                return result
-        
+            success, user, error = register_pcd_user(form)
+            
+            if success:
+                login_user(request, user)
+                messages.success(
+                    request, 
+                    Messages.REGISTER_PCD_SUCCESS.format(user.primeiro_nome)
+                )
+                return redirect(Routes.ACCOUNT_PANEL)
+            else:
+                messages.error(request, error)
+
         return render(request, self.template_name, {"form": form})
 
 
@@ -57,16 +66,23 @@ class RegisterCompanyView(View):
     
     def get(self, request):
         if request.user.is_authenticated:
-            return redirect("account:panel")
+            return redirect(Routes.ACCOUNT_PANEL)
         return render(request, self.template_name, {"form": CompanyRegistrationForm()})
     
     def post(self, request):
         form = CompanyRegistrationForm(request.POST)
         
         if form.is_valid():
-            result = register_company_user(request, form)
-            if result:
-                return result
+            success, user, error = register_company_user(form)
+            
+            if success:
+                messages.success(
+                    request, 
+                    Messages.REGISTER_COMPANY_SUCCESS.format(user.primeiro_nome)
+                )
+                return redirect(Routes.ACCOUNT_LOGIN)
+            else:
+                messages.error(request, error)
         
         return render(request, self.template_name, {"form": form})
 
@@ -78,110 +94,91 @@ class LoginView(View):
     def get(self, request):
         if request.user.is_authenticated:
             if request.user.is_staff:
-                return redirect("admin:index")
-            return redirect("account:panel")
-        
+                return redirect(Routes.ADMIN_INDEX)
+            return redirect(Routes.ACCOUNT_PANEL)
         return render(request, self.template_name, {"form": LoginForm()})
-
+    
     def post(self, request):
         form = LoginForm(request.POST)
         
         if form.is_valid():
-            result = login_user(request, form.user)
-            if result:
-                return result
+            user = form.user
+            login_user(request, user)
+            
+            if user.is_staff:
+                return redirect(Routes.ADMIN_INDEX)
+            return redirect(Routes.ACCOUNT_PANEL)
         
         return render(request, self.template_name, {"form": form})
+
+
+class CustomLogoutView(View):
+    
+    def get(self, request):
+        messages.info(request, Messages.LOGOUT_INFO)
+        logout(request)
+        return redirect(Routes.ACCOUNT_LOGIN)
 
 
 class PanelView(LoginRequiredMixin, View):
     
     template_name = "account/panel.html"
-    login_url = "account:login"
     
     def get(self, request):
+        user = request.user
         context = {
-            "user": request.user,
-            "tipo": request.user.tipo
+            "user": user,
+            "primeiro_nome": user.primeiro_nome,
+            "tipo": user.tipo,
         }
         return render(request, self.template_name, context)
 
 
-class CustomLogoutView(LoginRequiredMixin, View):
-    
-    login_url = "account:login"
-    
-    def get(self, request):
-        logout(request)
-        messages.info(request, "Você saiu da sua conta. Até logo!")
-        return redirect("account:login")
-    
-    def post(self, request):
-        return self.get(request)
-
-
-class CustomPasswordResetView(View):
-    
-    template_name = "account/forgot_password.html"
-    
-    def get(self, request):
-        if request.user.is_authenticated:
-            return redirect("account:panel")
-        return render(request, self.template_name, {"form": PasswordResetRequestForm()})
-    
-    def post(self, request):
-        form = PasswordResetRequestForm(request.POST)
-        
-        if form.is_valid():
-            email = form.cleaned_data["email"]
-            user = User.objects.get(email=email)
-            
-            if send_password_reset_email(request, user):
-                return redirect("forgot_password_done")
-        
-        return render(request, self.template_name, {"form": form})
+class PasswordResetView:
     
     @staticmethod
-    def done_view(request):
-        return render(request, "account/forgot_password_done.html")
-    
+    def request_view(request):
+        if request.method == "POST":
+            form = PasswordResetRequestForm(request.POST)
+            if form.is_valid():
+                try:
+                    user = User.objects.get(email=form.cleaned_data["email"])
+                    send_password_reset_email(request, user)
+                    messages.success(request, Messages.PASSWORD_RESET_EMAIL_SENT)
+                except User.DoesNotExist:
+                    messages.success(request, Messages.PASSWORD_RESET_EMAIL_SENT)  
+                return redirect("account:password_reset_sent") 
+        else:
+            form = PasswordResetRequestForm()
+        return render(request, "account/forgot_password.html", {"form": form})
+
     @staticmethod
     def confirm_view(request, uidb64, token):
-        if request.method == "GET":
-            user = validate_reset_token(uidb64, token)
-            
-            if not user:
-                messages.error(request, "Link inválido ou expirado.")
-                return redirect("forgot_password")
-            
-            return render(request, "account/password_reset_confirm.html", {
-                "form": PasswordResetConfirmForm(),
-                "uidb64": uidb64,
-                "token": token
-            })
-        
-        elif request.method == "POST":
-            user = validate_reset_token(uidb64, token)
-            
-            if not user:
-                messages.error(request, "Link inválido ou expirado.")
-                return redirect("forgot_password")
-            
+        user = validate_reset_token(uidb64, token)
+        if not user:
+            messages.error(request, Messages.PASSWORD_RESET_INVALID_LINK)
+            return redirect("account:forgot_password")
+
+        if request.method == "POST":
             form = PasswordResetConfirmForm(request.POST)
-            
             if form.is_valid():
                 if reset_user_password(user, form.cleaned_data["password1"]):
-                    messages.success(request, "Senha alterada com sucesso!")
-                    return redirect("password_reset_complete")
-                else:
-                    messages.error(request, "Erro ao alterar senha. Tente novamente.")
-            
-            return render(request, "account/password_reset_confirm.html", {
-                "form": form,
-                "uidb64": uidb64,
-                "token": token
-            })
+                    messages.success(request, Messages.PASSWORD_RESET_SUCCESS)
+                    return redirect("account:password_reset_complete")
+        else:
+            form = PasswordResetConfirmForm()
+
+        return render(request, "account/password_reset_confirm.html", {
+            "form": form,
+            "uidb64": uidb64,
+            "token": token
+        })
+
+    @staticmethod
+    def sent_view(request):
+        return render(request, "account/password_reset_sent.html")
     
     @staticmethod
     def complete_view(request):
         return render(request, "account/password_reset_complete.html")
+    

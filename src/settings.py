@@ -7,7 +7,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env_path = BASE_DIR / '.env'
 load_dotenv(dotenv_path=env_path)
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY não configurada nas variáveis de ambiente")
 
 DEBUG = True
 
@@ -78,15 +80,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'pt-br'
+
 TIME_ZONE = 'America/Sao_Paulo'
+
 USE_I18N = True
+
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -113,6 +117,8 @@ AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_S3_ADDRESSING_STYLE = 'virtual'
 
+API_RESEND = os.getenv('RESEND_API_KEY')
+
 from django.contrib.messages import constants as messages
 
 MESSAGE_TAGS = {
@@ -126,15 +132,40 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 LOGIN_URL = 'account:login'
 LOGIN_REDIRECT_URL = 'account:panel'
-LOGOUT_REDIRECT_URL = 'account:login'
 
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
-API_RESEND = os.getenv('API_RESEND')
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'django.log',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
+LOG_DIR = BASE_DIR / 'logs'
+if not LOG_DIR.exists():
+    LOG_DIR.mkdir(parents=True, exist_ok=True)

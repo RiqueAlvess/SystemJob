@@ -6,15 +6,16 @@ from .models import User, UserAvatar, PerfilPCD, PerfilMedico, PerfilEmpresa
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     list_display = ['email', 'nome_completo', 'tipo_usuario', 'is_staff', 'is_superuser', 'criado_em']
-    list_filter = ['is_staff', 'is_superuser', 'criado_em']  # REMOVIDO 'tipo'
+    list_filter = ['is_staff', 'is_superuser', 'criado_em']
     search_fields = ['email', 'nome_completo']
     ordering = ['-criado_em']
-    readonly_fields = ['criado_em', 'ultima_sessao', 'avatar_preview']
+    readonly_fields = ['criado_em', 'ultima_sessao', 'avatar_preview', 'criado_por', 'modificado_por']
 
     fieldsets = (
         ('Informações Pessoais', {'fields': ('email', 'nome_completo', 'sexo', 'telefone')}),
         ('Permissões', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
         ('Datas', {'fields': ('criado_em', 'ultima_sessao')}),
+        ('Rastreamento', {'fields': ('criado_por', 'modificado_por')}),
         ('Avatar', {'fields': ('avatar_preview',)}),
     )
     add_fieldsets = (
@@ -22,6 +23,12 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('email', 'nome_completo', 'password1', 'password2', 'is_staff', 'is_superuser')
         }),
     )
+
+    list_select_related = ['criado_por', 'modificado_por']
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('perfil_pcd', 'perfil_empresa', 'perfil_medico')
 
     def tipo_usuario(self, obj):
         tipo = obj.tipo
@@ -57,9 +64,9 @@ class PerfilPCDAdmin(admin.ModelAdmin):
 @admin.register(PerfilMedico)
 class PerfilMedicoAdmin(admin.ModelAdmin):
     list_display = ['user', 'crm', 'uf_crm']
-    search_fields = ['user__email', 'crm']
+    search_fields = ['user__email', 'user__nome_completo', 'crm']
 
 @admin.register(PerfilEmpresa)
 class PerfilEmpresaAdmin(admin.ModelAdmin):
-    list_display = ['razao_social', 'cnpj', 'user']
-    search_fields = ['razao_social', 'cnpj', 'user__email']
+    list_display = ['user', 'cnpj', 'razao_social', 'telefone_principal']
+    search_fields = ['user__email', 'user__nome_completo', 'cnpj', 'razao_social']
